@@ -145,7 +145,11 @@ process_cmdline(int argc, char** argv)
 	    if (strncmp(argv[i], "--csv", 5) == 0)
 	       pos = 5;
 	    if (strlen(argv[i]) > pos) {
+#if defined(MAWK_CSV_X_SKIPISPACES) || defined(MAWK_CSV_SKIPSPACES)
+	       if(argv[i][pos] != '=' || strlen(argv[i]) != (pos + 2) || argv[i][pos + 1] == '"' || argv[i][pos + 1] == ' ') {
+#else
 	       if(argv[i][pos] != '=' || strlen(argv[i]) != (pos + 2) || argv[i][pos + 1] == '"') {
+#endif
 		  errmsg(0, "error in setting csv separator");
 		  mawk_exit(2);
 	       }         
@@ -463,7 +467,11 @@ static const char* const help[] = {
 "\t--csv          turns on csv mode. separator can be set by adding =char",
 "\t               separator should be one character. default is ','",
 "\t               exception is '\\t' for TAB as separator",
-"\t               separator  '\"' is not allowed",
+#if defined(MAWK_CSV_X_SKIPISPACES) || defined(MAWK_CSV_SKIPSPACES)
+"\t               separators '\"' and ' ' are not allowed",
+#else
+"\t               separator '\"' is not allowed",
+#endif
 "\t               FS and RS cannot be changed",
 "\t               split without a third argument does csv splitting",
 "\t               internally the non-printing character \\035 is used to indicate csv splitting",

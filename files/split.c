@@ -109,6 +109,11 @@ space_split(const char *s, size_t slen)
     /* not reached */
 }
 
+#ifdef MAWK_CSV_SKIPSPACES
+#undef MAWK_CSV_X
+#undef MAWK_CSV_X_SKIPISPACES
+#endif
+
 size_t
 re_split(const char *s, size_t slen, PTR re)
 {
@@ -136,29 +141,83 @@ re_split(const char *s, size_t slen, PTR re)
 		}
 		/* find one field */
 		s2 = s;	/* s2 is front of field */
+#if defined(MAWK_CSV_SKIPSPACES) || defined(MAWK_CSV_X_SKIPISPACES)
+		while (*s == ' ' && s < end)
+		    s++;
+#ifdef MAWK_CSV_SKIPSPACES
+		if (s < end && *s == '"')
+#else
+		if (s < end)
+#endif
+		    s2 = s;
+		else
+		    s = s2;
+#endif
 		if (*s == '"') {
 		    size_t delta = 1;
+#ifdef MAWK_CSV_SKIPSPACES
+		    size_t spaces = 0;
+#endif
 		    s++;
 		    while (s < end) {
-			if (*s == '"') {
-			    if (s[1] == '"') {
-				s++;
-				delta++;
-				if (s == end)
+#ifdef MAWK_CSV_SKIPSPACES
+			if (spaces) {
+			    if (*s == ' ')
+				spaces++;
+			    else {
+				if (*s == CSV) {
+				    delta += spaces;
+				    spaces = 0;
 				    break;
-			    } else {
-				if (s[1] == CSV) {
+				}
+				else
+				    spaces = 0;
+			    }
+			}
+#endif
+			if (*s == '"') {
+			    const char *sp1 = s + 1;
+			    if (sp1 == end)
+				delta++;
+			    else {
+				if (*sp1 == '"') {
+				    s++;
+				    delta++;
+				    if (s == end)
+					break;
+				} else {
+#if defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
 				    s++;
 				    delta++;
 				    break;
-				} else {
-				    if ((s + 1) == end)
+#else
+				    if (*sp1 == CSV) {
+					s++;
 					delta++;
+					break;
+				    }
+#ifdef MAWK_CSV_SKIPSPACES
+				    else {
+					if (*sp1 == ' ')
+					    spaces++;
+				    }
+#endif
+#endif
 				}
 			    }
 			}
 			s++;
 		    }
+#if defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
+		    while (s < end) {
+			if (*s == CSV)
+			    break;
+			s++;
+		    }
+#endif
+#ifdef MAWK_CSV_SKIPSPACES
+		    delta += spaces;
+#endif
 		    node_p->strings[idx] = new_STRING2CSV(s2, s - s2, delta);
 		} else {
 		    while (s < end && *s != CSV)

@@ -156,6 +156,12 @@ FINclose(FIN* fin)
    return ret ;
 }
 
+#ifdef MAWK_CSV_SKIPSPACES
+#undef MAWK_CSV_X
+#undef MAWK_CSV_X_SKIPISPACES
+#endif
+
+
 /* return one input record as determined by RS,
    from input file (FIN)  fin
 */
@@ -275,7 +281,18 @@ retry:
 			if (quote_pos[-1] == CSV)
 		    	    q_state = Q;
 			else
+#if defined(MAWK_CSV_X_SKIPISPACES) || defined(MAWK_CSV_SKIPSPACES)
+			{
+			    if (quote_pos[-1] == ' ') {
+				p = rec_start;
+				q_state = START;
+			    } else {
+				q_state = NOT_Q;
+			    }
+			}
+#else
 			    q_state = NOT_Q;
+#endif
 		    } else {
 			q_state = Q;
             	    }
@@ -297,7 +314,11 @@ retry:
 			    switch(q_state) {
 				case START:
 				    if (*p == '"') q_state = Q;
+#if defined(MAWK_CSV_X_SKIPISPACES) || defined(MAWK_CSV_SKIPSPACES)
+				    else if (*p != CSV && *p != ' ') q_state = NOT_Q;
+#else
 				    else if (*p != CSV) q_state = NOT_Q;
+#endif
 				    break;
 				case NOT_Q:
 				    if (*p == CSV) q_state = START;
@@ -307,7 +328,16 @@ retry:
 				    break;
 				case QQ:
 				    if (*p == CSV) q_state = START;
+#if defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
+				    else if (*p == '"') q_state = Q;
+				    else q_state = NOT_Q;
+#else
+#ifdef MAWK_CSV_SKIPSPACES
+				    else if (*p != ' ') q_state = Q;
+#else
 				    else q_state = Q;
+#endif
+#endif
 				    break;
 			    }
 			    p++;

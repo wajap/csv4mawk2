@@ -20,11 +20,11 @@ you agree to not name that product mawk.
 static const char* PATCH_STRING = ".9.6" ;
 static const char* DATE_STRING  = "21 Aug 2016" ;
 /* csv */
-static const char* DATE_STRING_CSV  = "6 Jan 2026" ;
+static const char* DATE_STRING_CSV  = "3 FEB 2026" ;
 
 static
 const char* const version_string =
-  "mawk 1.9%s, %s, Copyright Michael D. Brennan\n(%s, csv processing by Wilbert van der Poel)\n\n" ;
+  "mawk 1.9%s, %s, Copyright Michael D. Brennan\n(%s, csv processing by Wilbert van der Poel)\n" ;
 
 static  const char*const fmt = "%-14s%10lu\n";
 /* print VERSION and exit */
@@ -33,6 +33,23 @@ print_version(void)
 {
 
    printf(version_string, PATCH_STRING, DATE_STRING, DATE_STRING_CSV) ;
+#ifdef MAWK_CSV_SKIPSPACES
+#undef MAWK_CSV_X
+#undef MAWK_CSV_X_SKIPISPACES
+#endif
+
+#if defined(MAWK_CSV_SKIPSPACES) || defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
+#if defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
+   printf("X-Mode ");
+#if defined(MAWK_CSV_X_SKIPISPACES)
+   printf("skip initial spaces");
+#endif
+#else
+   printf("skip leading and trailing spaces before/after \"");
+#endif
+   printf("\n");
+#endif
+   printf("\n");
    exit(0) ;
 }
 
