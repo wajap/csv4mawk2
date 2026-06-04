@@ -64,10 +64,6 @@ new_STRING2(const char* s, size_t len)
     }
 }
 
-#ifdef MAWK_CSV_SKIPSPACES
-#undef MAWK_CSV_X
-#undef MAWK_CSV_X_SKIPISPACES
-#endif
 
 STRING*
 new_STRING2CSV(const char* s, size_t len, size_t delta)
@@ -84,13 +80,11 @@ new_STRING2CSV(const char* s, size_t len, size_t delta)
 	else {
 	    char *dest = (char *)ret->str;
 	    s++;
-	    len--;
+	    len -= delta;
 	    while (len) { // no len-- here !
-		len--;
 		if (*s == '"') {
 		    if (len>0 && s[1] == '"') {
 			s++;
-			len--;
 		    }
 		    else {
 			s++;
@@ -98,6 +92,7 @@ new_STRING2CSV(const char* s, size_t len, size_t delta)
 		    }
 		}
 		*dest++ = *s++;
+		len--;
 	    }
 	    while (len--) {
 		*dest++ = *s++;
@@ -109,16 +104,11 @@ new_STRING2CSV(const char* s, size_t len, size_t delta)
 	} else {
 	    char *dest = (char *)ret->str;
 	    s++;
-	    len--;
+	    len -= delta;
 	    while (len--) {
 		if (*s == '"') {
 		    if (len>0 && s[1] == '"') {
 			s++;
-			len--;
-		    }
-		    else if (!len) {
-			s++;
-			return ret ;
 		    }
 		}
 		*dest++ = *s++;

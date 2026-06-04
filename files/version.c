@@ -20,7 +20,7 @@ you agree to not name that product mawk.
 static const char* PATCH_STRING = ".9.6" ;
 static const char* DATE_STRING  = "21 Aug 2016" ;
 /* csv */
-static const char* DATE_STRING_CSV  = "3 FEB 2026" ;
+static const char* DATE_STRING_CSV  = "19 FEB 2026" ;
 
 static
 const char* const version_string =
@@ -33,10 +33,6 @@ print_version(void)
 {
 
    printf(version_string, PATCH_STRING, DATE_STRING, DATE_STRING_CSV) ;
-#ifdef MAWK_CSV_SKIPSPACES
-#undef MAWK_CSV_X
-#undef MAWK_CSV_X_SKIPISPACES
-#endif
 
 #if defined(MAWK_CSV_SKIPSPACES) || defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
 #if defined(MAWK_CSV_X) || defined(MAWK_CSV_X_SKIPISPACES)
@@ -49,6 +45,15 @@ print_version(void)
 #endif
    printf("\n");
 #endif
+
+#ifdef MAWK_CSV_RFC4180
+   printf("RFC4180 mode");
+#ifdef MAWK_CSV_SKIPSPACES
+   printf(". Skip leading and trailing spaces before/after \"");
+#endif
+   printf("\n");
+#endif
+
    printf("\n");
    exit(0) ;
 }

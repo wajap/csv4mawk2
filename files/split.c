@@ -109,10 +109,6 @@ space_split(const char *s, size_t slen)
     /* not reached */
 }
 
-#ifdef MAWK_CSV_SKIPSPACES
-#undef MAWK_CSV_X
-#undef MAWK_CSV_X_SKIPISPACES
-#endif
 
 size_t
 re_split(const char *s, size_t slen, PTR re)

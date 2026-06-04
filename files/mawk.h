@@ -61,6 +61,15 @@ extern int mpow2[] ;
 extern char CSV;
 #define FS_SHADOW_CSV '\035'
 
+#ifdef MAWK_CSV_SKIPSPACES
+#undef MAWK_CSV_X
+#undef MAWK_CSV_X_SKIPISPACES
+#endif
+#ifdef MAWK_CSV_RFC4180
+#undef MAWK_CSV_X
+#undef MAWK_CSV_X_SKIPISPACES
+#endif
+
  /* these are used by the parser, scanner and error messages
     from the compile  */
 

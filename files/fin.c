@@ -156,12 +156,6 @@ FINclose(FIN* fin)
    return ret ;
 }
 
-#ifdef MAWK_CSV_SKIPSPACES
-#undef MAWK_CSV_X
-#undef MAWK_CSV_X_SKIPISPACES
-#endif
-
-
 /* return one input record as determined by RS,
    from input file (FIN)  fin
 */
@@ -254,9 +248,11 @@ retry:
    {
       case SEP_CHAR:
 	 match_len = 1 ;
-	 rec_end = (char *)memchr(rec_start, rs_shadow.c, fin->end - rec_start) ;
-	 if (CSV) {
+	 if (!CSV) {
+	    rec_end = (char *)memchr(rec_start, rs_shadow.c, fin->end - rec_start) ;
+	 else {
 	    char* p_cr;
+	    rec_end = (char *)memchr(rec_start, '\n' , fin->end - rec_start) ;
 	    if (rec_end) {
 		p_cr = (char *)memchr(rec_start, '\r', rec_end - rec_start) ;
 	    } else {
@@ -275,6 +271,10 @@ retry:
 			    match_len = 2;
 		    }
 		} else {
+#ifdef MAWK_CSV_RFC4180
+		    enum {NOT_Q,Q} q_state = Q;
+		    char *p = quote_pos + 1;
+#else
 		    enum {START,NOT_Q,Q,QQ} q_state;
 		    char *p = quote_pos + 1;
 		    if (quote_pos > rec_start) {
@@ -296,6 +296,7 @@ retry:
 		    } else {
 			q_state = Q;
             	    }
+#endif
 		    size_t n = fin->end - p;
 		    rec_end = NULL;
 		    if (n > 0) {
@@ -311,6 +312,17 @@ retry:
 				rec_end = p;
 				break;
 			    }
+#ifdef MAWK_CSV_RFC4180
+			    if (*p == '"') {
+				switch(q_state) {
+				    case NOT_Q:
+					q_state = Q;
+					break;
+				    case Q:
+					q_state = NOT_Q;
+					break;
+			    	}
+#else
 			    switch(q_state) {
 				case START:
 				    if (*p == '"') q_state = Q;
@@ -339,6 +351,7 @@ retry:
 #endif
 #endif
 				    break;
+#endif
 			    }
 			    p++;
 			} while (--n != 0);
